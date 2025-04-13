@@ -4,7 +4,7 @@ import { TodoListProps } from "../types/types";
 const TodoList = ({todos, handleDeleteTask, handleEditTask}: TodoListProps) => {
     return (
         <ul>
-            {todos.map((todo) => (
+            {todos?.map((todo) => (
                 <TodoItem
                     key={todo.id}
                     todo={todo}
