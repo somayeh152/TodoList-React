@@ -25,7 +25,7 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => {
         console.log('Response received:', response.data);
-        return response.data;
+        return response;
     }, (error) => {
         if (error.response) {
             console.log('Error response:', error.response.status); // show error in UI
