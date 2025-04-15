@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import axiosInstance from "./api/api.jsx";
+import { fetchTodos, addTodo, deleteTodo, updateTodo } from "./services/todoService";
 import TodoForm from './components/TodoForm';
 import TodoList from './components/TodoList';
 import { Todo } from "./types/types";
@@ -12,18 +12,22 @@ function App() {
     const [editingId, setEditingId] = useState<number | null>(null);
 
     useEffect(() => {
-        fetchTodos();
+        fetchTodosHandler();
     } , []);
 
-    const fetchTodos = async () => {
+    const fetchTodosHandler = async () => {
         setLoading(true);
         setError("");
         try {
-            const response = await axiosInstance.get<Todo[]>("/todos?_limit=10");
+            const response = await fetchTodos();
             setTodos(response.data);
-        } catch (err: any) {
-            console.error(err);
-            setError(err.message);
+            console.log('Fetched Todos:', response.data);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unexpected error occurred in fetching tasks.");
+            }
         } finally {
             setLoading(false);
         }
@@ -33,12 +37,15 @@ function App() {
         e.preventDefault();
         try {
             setLoading(true);
-            const response = await axiosInstance.post<Todo>("/todos", {title: newTask});
+            const response = await addTodo({title: newTask});
             setTodos((prevTodos) => [...prevTodos, response.data]);
             setNewTask("");
-        } catch (err: any) {
-            console.error('error in add new task',err.message);
-            setError(err.message);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unexpected error occurred in adding task.");
+            }
         } finally {
             setLoading(false)
         }
@@ -47,11 +54,14 @@ function App() {
     const handleDeleteTask = async (id: number) => {
         try {
             setLoading(true);
-            await axiosInstance.delete(`/todos/${id}`);
-            setTodos((pervtodos) => pervtodos.filter(todo => todo.id !== id));
-        } catch (err: any){
-            console.error(err);
-            setError(err.message);
+            await deleteTodo(id);
+            setTodos((prevTodos) => prevTodos.filter(todo => todo.id !== id));
+        } catch (err: unknown){
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unexpected error occurred in deleting task.");
+            }
         } finally {
             setLoading(false);
         }
@@ -66,7 +76,7 @@ function App() {
         e.preventDefault();
         try {
             setLoading(true);
-            const response = await axiosInstance.put<Todo>(`/todos/${editingId}`, {title: newTask});
+            const response = await updateTodo(editingId!, {title: newTask});
             setTodos(prevTodos =>
                 prevTodos.map(todo =>
                     todo.id === editingId ? { ...todo, title: response.data.title } : todo
@@ -74,9 +84,12 @@ function App() {
             );
             setEditingId(null);
             setNewTask("");
-        } catch (err: any) {
-            console.error(err);
-            setError(err.message);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("An unexpected error occurred in updating task.");
+            }
         } finally {
             setLoading(false);
         }
